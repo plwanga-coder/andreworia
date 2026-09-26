@@ -1,6 +1,6 @@
 # Skills Audit — claude-excel-skills
 
-Audit date: 2026-09-26. Scope: all 12 `skills/*/SKILL.md` files (read in full), repo history (3 commits, single author), and assets.
+Audit date: 2026-09-26. Scope: all 12 `skills/*/SKILL.md` files as originally published (the `skills/` folder has since been removed; see Installation) (read in full), repo history (3 commits, single author), and assets.
 
 ## Verdict
 
@@ -41,7 +41,7 @@ Note: the README is mostly marketing for Oria. The skills themselves contain no 
 
 ## Technical findings
 
-**Status (2026-09-26):** all findings (1–11) are **patched in the installed copies** under `.claude/skills/` and `~/.claude/skills/`. `skills/` is left identical to upstream.
+**Status (2026-09-26):** all findings (1–11) are **patched in the installed copies** under `.claude/skills/` and `~/.claude/skills/`. The unpatched originals are no longer in the working tree (see Installation).
 
 ### High
 
@@ -91,4 +91,5 @@ Worked examples checked and arithmetically correct: revenue-build (1,000 + 200 �
 
 - **Project level:** copied to `.claude/skills/<name>/SKILL.md` in this repo, unmodified. They load automatically in any Claude Code session opened on this repo.
 - **User level (this session):** copied to `~/.claude/skills/`. This cloud container is temporary, so copy them to `~/.claude/skills/` on your own machine too, or upload each folder in the Claude app (Settings → Capabilities → Skills).
-- The installed copies started as byte-for-byte copies of `skills/`. They have since been patched for findings 1–11. Run `diff -r skills .claude/skills` to see exactly what changed.
+- The installed copies started as byte-for-byte copies of the original `skills/` folder, and have since been patched for findings 1–11.
+- `.claude/skills/` is now the only copy in the repo; the original `skills/` folder has been deleted. The unpatched originals remain in git history (commit `d55b37d`) and upstream at `andreworia/claude-excel-skills`. Run `git diff d55b37d:skills HEAD:.claude/skills` to see exactly what was patched.

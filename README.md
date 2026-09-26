@@ -100,28 +100,28 @@ They were written by [Oria](https://www.oria.one/?utm_source=github&utm_medium=r
 
 | Skill | What it does |
 |:--|:--|
-| [`model-architecture-template`](skills/model-architecture-template) | Sets the master tab set, naming conventions, colour codes, number formats and print setup for a new model — the empty shell every other skill fills. |
-| [`inputs-calcs-outputs-design`](skills/inputs-calcs-outputs-design) | Enforces the three-zone separation: an Inputs tab of editable assumptions, Calculation tabs with no hardcodes, and an Outputs tab that only references. |
-| [`assumption-registry-builder`](skills/assumption-registry-builder) | Builds the assumption register — name, category, base value, source, Bull and Bear cases, sensitivity rank and owner — so every number has a provenance and a signature. |
+| [`model-architecture-template`](.claude/skills/model-architecture-template) | Sets the master tab set, naming conventions, colour codes, number formats and print setup for a new model — the empty shell every other skill fills. |
+| [`inputs-calcs-outputs-design`](.claude/skills/inputs-calcs-outputs-design) | Enforces the three-zone separation: an Inputs tab of editable assumptions, Calculation tabs with no hardcodes, and an Outputs tab that only references. |
+| [`assumption-registry-builder`](.claude/skills/assumption-registry-builder) | Builds the assumption register — name, category, base value, source, Bull and Bear cases, sensitivity rank and owner — so every number has a provenance and a signature. |
 
 ### Build — clean the data, then drive the numbers
 
 | Skill | What it does |
 |:--|:--|
-| [`data-cleaning-for-excel`](skills/data-cleaning-for-excel) | Turns a pasted export with mixed date formats, text numbers, duplicates and stray whitespace into a consistent range, with a change log so the cleaning is auditable. |
-| [`pivot-table-builder`](skills/pivot-table-builder) | Specifies and builds a pivot from a flat range — rows, columns, values, filters — and flags the fields that will not aggregate cleanly. |
-| [`revenue-build`](skills/revenue-build) | Builds a driver-based revenue `.xlsx`: a customer or units schedule of beginning, adds, churn and ending rolled into revenue, across drivers, build and output tabs. |
-| [`unit-economics`](skills/unit-economics) | Builds a unit-economics and cohort `.xlsx` — CAC, LTV, LTV/CAC and CAC payback computed off a monthly retention grid rather than asserted. |
+| [`data-cleaning-for-excel`](.claude/skills/data-cleaning-for-excel) | Turns a pasted export with mixed date formats, text numbers, duplicates and stray whitespace into a consistent range, with a change log so the cleaning is auditable. |
+| [`pivot-table-builder`](.claude/skills/pivot-table-builder) | Specifies and builds a pivot from a flat range — rows, columns, values, filters — and flags the fields that will not aggregate cleanly. |
+| [`revenue-build`](.claude/skills/revenue-build) | Builds a driver-based revenue `.xlsx`: a customer or units schedule of beginning, adds, churn and ending rolled into revenue, across drivers, build and output tabs. |
+| [`unit-economics`](.claude/skills/unit-economics) | Builds a unit-economics and cohort `.xlsx` — CAC, LTV, LTV/CAC and CAC payback computed off a monthly retention grid rather than asserted. |
 
 ### Stress it, audit it, hand it over
 
 | Skill | What it does |
 |:--|:--|
-| [`scenario-manager`](skills/scenario-manager) | Builds a live Base/Bull/Bear switching layer with a selector and CHOOSE or INDEX assumption pulls — visible on the sheet, unlike Excel's hidden Scenario Manager. |
-| [`sensitivity-tables`](skills/sensitivity-tables) | Builds one- and two-variable Data Tables on a key output, so you can show how NPV, IRR, EPS or margin moves as one or two drivers change. |
-| [`sensitivity-tornado`](skills/sensitivity-tornado) | Swings each input over a defined range, ranks the drivers by absolute impact and specifies the tornado chart that answers "which assumption actually matters?". |
-| [`formula-audit-checker`](skills/formula-audit-checker) | Runs the pre-submission audit — trace precedents and dependents, hardcodes buried in formulas, circular references, inconsistent IFERROR — and returns a prioritised fix list. |
-| [`output-summary-tab`](skills/output-summary-tab) | Designs the one-page executive summary tab: KPI tiles, the so-what narrative, a compact sensitivity table and the key assumptions, sized for one landscape page. |
+| [`scenario-manager`](.claude/skills/scenario-manager) | Builds a live Base/Bull/Bear switching layer with a selector and CHOOSE or INDEX assumption pulls — visible on the sheet, unlike Excel's hidden Scenario Manager. |
+| [`sensitivity-tables`](.claude/skills/sensitivity-tables) | Builds one- and two-variable Data Tables on a key output, so you can show how NPV, IRR, EPS or margin moves as one or two drivers change. |
+| [`sensitivity-tornado`](.claude/skills/sensitivity-tornado) | Swings each input over a defined range, ranks the drivers by absolute impact and specifies the tornado chart that answers "which assumption actually matters?". |
+| [`formula-audit-checker`](.claude/skills/formula-audit-checker) | Runs the pre-submission audit — trace precedents and dependents, hardcodes buried in formulas, circular references, inconsistent IFERROR — and returns a prioritised fix list. |
+| [`output-summary-tab`](.claude/skills/output-summary-tab) | Designs the one-page executive summary tab: KPI tiles, the so-what narrative, a compact sensitivity table and the key assumptions, sized for one landscape page. |
 
 ## Install
 
@@ -130,8 +130,8 @@ Each skill is a folder containing a `SKILL.md` with YAML frontmatter, following 
 **Claude Code** — clone into your skills directory:
 
 ```bash
-git clone https://github.com/andreworia/claude-excel-skills.git
-cp -r claude-excel-skills/skills/* ~/.claude/skills/
+git clone https://github.com/plwanga-coder/andreworia.git
+cp -r andreworia/.claude/skills/* ~/.claude/skills/
 ```
 
 **Claude app (web, desktop, mobile)** — go to Settings → Capabilities → Skills and upload a skill folder, or zip one and upload it.
