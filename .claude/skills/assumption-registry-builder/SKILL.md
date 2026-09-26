@@ -42,9 +42,9 @@ Produces a structured assumption register: a dedicated Assumptions tab listing e
 
    If a tornado chart Data Table has been built (using the sensitivity-tornado skill), reference the impact values directly from that Data Table.
 
-   Impact on Key Output formula: ='Tornado - Data Table'!F_row - 'Tornado - Data Table'!E_row (High impact minus Low impact for this variable).
+   Keep the Impact column (J) numeric and unsigned: store the absolute swing, =ABS('Tornado - Data Table'!F_row - 'Tornado - Data Table'!E_row). If you want to show the direction (e.g. "+$18M / -$14M"), put that text in a separate display column. RANK cannot read text, and on signed values it ranks a large negative swing as least impactful.
 
-   Sensitivity Rank (1-10, where 1 is most impactful): Use RANK function on the Impact column: =RANK(J5, $J$5:$J$50, 0) where J5 is the Impact column cell for this assumption. A rank of 1 means this is the single most impactful assumption.
+   Sensitivity Rank (1 = most impactful): =RANK(J5, $J$5:$J$50, 0) where J5 is the absolute-impact cell for this assumption. Do not fix the range at 1-10: ranks run from 1 to the number of assumptions.
 
    Sensitivity Category (High/Medium/Low): =IF(I5<=3,"High",IF(I5<=7,"Medium","Low")) where I5 is the numeric rank.
 
@@ -97,15 +97,15 @@ A complete assumption register specification with:
 
 **Assumption register (excerpt):**
 
-| ID | Assumption | Category | Base Value | Unit | Source / Rationale | Bull | Bear | Rank | Impact on ARR Y5 | Monitor | Owner |
-| A001 | ARR Growth Rate | Revenue | 25% | % | Historical 3-year CAGR (FY22-FY24): 27%; slightly discounted for maturation | 32% | 18% | 1 | +$18M / -$14M | Active | VP Sales |
-| A002 | Annual Churn Rate | Revenue | 15% | % | FY2024 actual churn: 16.2%; improving to 15% reflects CSM investment program | 10% | 22% | 2 | -$12M / +$9M | Active | VP Customer Success |
-| A003 | Average Contract Value | Revenue | $22K | $ | Average of last 24 months closed-won deals (CRM export); excludes 2 outlier enterprise deals | $26K | $18K | 3 | +$8M / -$8M | Active | VP Sales |
-| A004 | Sales Headcount Additions | Cost | 8 | FTEs/year | Board-approved headcount plan (FY2025 budget) | 10 | 5 | 5 | +$3M / -$4M | Passive | CFO |
-| A005 | CAC (blended) | Cost | $35K | $ | FY2024 blended CAC (total sales & marketing spend / new logos): $33.2K; slightly increased for wage inflation | $28K | $45K | 4 | +$5M / -$6M | Active | CMO |
+| ID | Assumption | Category | Base Value | Unit | Source / Rationale | Bull | Bear | Rank | Impact on ARR Y5 (abs swing; direction shown for display) | Monitor | Owner |
+| A001 | ARR Growth Rate | Revenue | 25% | % | Historical 3-year CAGR (FY22-FY24): 27%; slightly discounted for maturation | 32% | 18% | 1 | $32M (+$18M / -$14M) | Active | VP Sales |
+| A002 | Annual Churn Rate | Revenue | 15% | % | FY2024 actual churn: 16.2%; improving to 15% reflects CSM investment program | 10% | 22% | 2 | $21M (-$12M / +$9M) | Active | VP Customer Success |
+| A003 | Average Contract Value | Revenue | $22K | $ | Average of last 24 months closed-won deals (CRM export); excludes 2 outlier enterprise deals | $26K | $18K | 3 | $16M (+$8M / -$8M) | Active | VP Sales |
+| A004 | Sales Headcount Additions | Cost | 8 | FTEs/year | Board-approved headcount plan (FY2025 budget) | 10 | 5 | 5 | $7M (+$3M / -$4M) | Passive | CFO |
+| A005 | CAC (blended) | Cost | $35K | $ | FY2024 blended CAC (total sales & marketing spend / new logos): $33.2K; slightly increased for wage inflation | $28K | $45K | 4 | $11M (+$5M / -$6M) | Active | CMO |
 
 **Sensitivity rank formula:**
-=RANK(J5,$J$5:$J$20,0) -- ranks assumptions by absolute impact on Year 5 ARR, with 1 = highest impact.
+=RANK(J5,$J$5:$J$20,0) -- J holds the absolute swing (numeric), so this ranks assumptions by absolute impact on Year 5 ARR, with 1 = highest impact.
 
 **Sensitivity category:**
 =IF(I5<=2,"High",IF(I5<=5,"Medium","Low"))

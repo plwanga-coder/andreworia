@@ -68,7 +68,7 @@ Produces a complete master architecture for any new strategy or finance Excel mo
 
 7. **Design the Checks tab.** The Checks tab is the model's integrity layer. It should include:
 
-   A summary traffic light at the top: IF(COUNTIF(checks_range,"FAIL")>0,"MODEL HAS ERRORS","ALL CHECKS PASS"), formatted in red or green respectively.
+   A summary traffic light at the top: IF(COUNTIF(checks_range,"FAIL*")>0,"MODEL HAS ERRORS","ALL CHECKS PASS") (the `*` wildcard is required so descriptive results like "FAIL -- WACC must exceed terminal growth" are counted), formatted in red or green respectively.
 
    Balance sheet balance check: Assets - Liabilities - Equity = 0 (IF(ABS(check)<0.01,"PASS","FAIL")).
    

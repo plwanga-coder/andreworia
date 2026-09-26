@@ -14,7 +14,7 @@ A workbook with six tabs:
 - Drivers: all blue inputs (starting customers, marketing spend, CAC or funnel rates, ARPU, churn, price, scenario multipliers).
 - Revenue Build: the period-by-period customer or units schedule and revenue.
 - Summary: annual revenue, growth, ending customers, and the scenario in force.
-- Sensitivity: new-adds by churn Data Table driving ending ARR or revenue.
+- Sensitivity: new-adds by churn grid (code-computed values) showing ending ARR or revenue.
 - Checks: roll-forward identity and sanity flags.
 
 ## Build workflow
@@ -24,7 +24,7 @@ A workbook with six tabs:
 4. Build the customer or units roll-forward on Revenue Build: beginning, adds, churn, ending.
 5. Compute revenue each period from the schedule (customers times ARPU, or volume times price).
 6. Build the Summary by aggregating periods to years.
-7. Build the Sensitivity tab as a native two-variable Data Table.
+7. Build the Sensitivity tab as a code-computed two-variable grid (see spec). Do not write `=TABLE(...)` from code.
 8. Build the Checks tab with the roll-forward identity and growth sanity tests.
 9. Recalculate the workbook headless (LibreOffice) so all formulas compute.
 10. Verify zero formula errors (#REF!, #DIV/0!, #VALUE!, #NAME?); fix and re-recalculate in a loop, then deliver.
@@ -64,7 +64,9 @@ A workbook with six tabs:
 ### Sensitivity
 - Top-left corner references ending ARR or final-period revenue `='Revenue Build'!<ending ARR cell>`.
 - Column input: new-adds per period values. Row input: churn % values.
-- Native two-variable Data Table with row input cell = Drivers churn and column input cell = a Drivers adds driver.
+- Fill the grid in Python: for each adds and churn pair, re-run the roll-forward (beginning + adds - churn, then revenue) over the full horizon with the active scenario multipliers, and write ending ARR as a plain value. Label it "computed snapshot".
+- Check: the grid cell at the base adds and churn equals the live ending-ARR cell after recalc (within rounding).
+- Why not a native Data Table: Excel only accepts Data Table input cells on the same sheet as the table, openpyxl cannot write a real Data Table, and LibreOffice recalculates an openpyxl-written `=TABLE(...)` to #VALUE!. Here the input cells are on Drivers, not Sensitivity. If the user wants it live, tell them to add the Data Table in Excel on the Drivers sheet, next to the churn and adds cells.
 
 ### Checks
 - Roll-forward each period: `=IF(Ending=Beginning+Adds-Churned,"PASS","FAIL")` across all periods, then `=AND(...)`.

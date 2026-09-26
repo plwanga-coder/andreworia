@@ -1,6 +1,6 @@
 ---
 name: sensitivity-tables
-description: Builds one- and two-variable sensitivity (Data Table) analysis on a model output in a .xlsx with live formulas and a recalc check, then delivers the workbook. Use when someone wants to see how an output (NPV, IRR, EPS, margin) moves as one or two inputs change. Do not trigger for editing an existing workbook through the Claude for Excel add-in.
+description: Builds one- and two-variable sensitivity grids on a model output in a .xlsx (code-computed values anchored to the live output cell, with an optional native Excel Data Table) and a recalc check, then delivers the workbook. Use when someone wants to see how an output (NPV, IRR, EPS, margin) moves as one or two inputs change. Do not trigger for editing an existing workbook through the Claude for Excel add-in.
 ---
 
 # Sensitivity Tables (One- and Two-Variable)
@@ -9,14 +9,15 @@ description: Builds one- and two-variable sensitivity (Data Table) analysis on a
 Use when a strategy or finance model has a single key output and you want to show how that output responds as one or two drivers vary across a range. Typical drivers are price, volume, discount rate, growth, churn, or cost per unit. This skill BUILDS a downloadable .xlsx from scratch in the Claude app (openpyxl plus numpy), with live formulas and a recalc-and-verify pass. It is not the Claude for Excel add-in.
 
 ## What it builds
-A single `Sensitivity` tab that attaches to an existing model. It references the model's input cells and output cell, lays out one-variable and two-variable grids, and color-scales the result block. If the source model lives on another sheet, the grid links to it with cross-sheet references so it stays live.
+A single `Sensitivity` tab that attaches to an existing model. It references the model's input cells and output cell, lays out one-variable and two-variable grids, and color-scales the result block. The corner and base-case cells link to the model with cross-sheet references so they stay live. The grid values are computed in Python and written as values, because a native Data Table cannot be generated reliably from code (see "Why not a native Data Table from code").
 
 ## Build workflow
 1. Identify the output cell (for example `Model!B40` holding NPV) and the one or two input cells that drive it (for example `Model!B6` discount rate, `Model!B7` growth).
 2. Confirm the output is a live formula chain back to those inputs. If the output is hardcoded, stop and wire the model first; a Data Table over a constant returns the constant.
 3. Choose input ranges around the base case (for example base discount rate 10 percent, sweep 6 to 14 percent in steps of 2).
-4. Build the native Excel Data Table structure: corner formula, input axes, and the `{=TABLE(r,c)}` array (see spec).
-5. ALSO build the code-computed grid as a robust fallback: re-evaluate the model in Python across every input combination and write the resulting values as a labeled matrix.
+4. Build the grid structure: corner formula linked to the live output, and the input axes as blue sweep values.
+5. Fill the grid by re-evaluating the model in Python across every input combination, and write the results as values, labeled "computed snapshot". Never write `=TABLE(...)` from code.
+5a. Optional: if the user wants a live grid, tell them how to add a native Data Table in Excel themselves (see "Native Data Table in Excel"). It must sit on the same sheet as the input cells it varies.
 6. Apply a 3-color scale to the result block and label both axes with the input cell names.
 7. Add the Checks block.
 8. Recalculate the workbook in a real engine (headless LibreOffice).
@@ -28,22 +29,24 @@ A single `Sensitivity` tab that attaches to an existing model. It references the
 Pick a layout direction. For inputs running DOWN a column:
 - `B3`: the output formula, referencing the live output: `=Model!B40`. This is the corner cell.
 - `A4:A10`: the input values you sweep (blue inputs), for example 6%, 8%, 10%, 12%, 14%.
-- `B4:B10`: the Data Table results column.
-- Select `A3:B10`, then Data > What-If Analysis > Data Table, leaving Row input cell blank and setting Column input cell to `Model!B6`. Excel writes `{=TABLE(,Model!B6)}` into `B4:B10`.
-- openpyxl can write the array formula string `=TABLE(,Model!B6)` into the block and the `=Model!B40` corner, but the values only populate after recalculation in a real engine.
-
-Code-computed fallback for the same block (recommended when generating via code), written to a labeled matrix below, say starting `A14`:
-- `A14`: label "Discount rate". `B14`: "NPV (computed)".
-- For each input value in `A15:A21`, Python sets `Model!B6` to that value, recomputes the model logic in numpy, and writes the resulting NPV as a plain value in column B.
-- Keep both: the native Data Table proves it is live; the computed matrix guarantees populated numbers even before the user opens Excel.
+- `B4:B10`: the results column. For each input value in `A4:A10`, Python sets the discount rate to that value, recomputes the model logic (numpy or plain Python mirroring the model's formulas), and writes the resulting NPV as a plain value.
+- Header note above the block: "Computed snapshot at build time. Re-run the build, or add a native Data Table in Excel, to refresh."
 
 ### Sensitivity tab, two-variable block
 - Corner cell `E3`: `=Model!B40` (the live output).
 - `E4:E10`: row-input values DOWN the left edge (first driver, for example growth 0%, 1%, ... 6%).
 - `F3:L3`: column-input values ACROSS the top row (second driver, for example discount rate 6% ... 14%).
-- Select `E3:L10`, Data > What-If Analysis > Data Table, Row input cell = `Model!B7` (the across driver), Column input cell = `Model!B6` (the down driver). Excel fills `F4:L10` with `{=TABLE(Model!B7,Model!B6)}`.
-- Watch the orientation: the cell tied to the TOP row goes in Row input cell; the cell tied to the LEFT column goes in Column input cell. Swapping them transposes the result silently.
-- Code-computed fallback: a double loop in Python over both axes, writing the value matrix to a labeled block (axis headers in green if they pull from the model, blue if literal sweep values).
+- `F4:L10`: a double loop in Python over both axes (growth down, discount rate across), writing the value matrix as plain values. Axis headers are blue if literal sweep values, green if they pull from the model.
+- Keep the orientation explicit in the axis labels ("Growth (Model!B7) down / Discount rate (Model!B6) across"), so nobody reads the grid transposed.
+
+### Native Data Table in Excel (optional, done by the user in Excel)
+If the user wants the grid to recalculate live, give them these steps rather than trying to generate it:
+- The Data Table must be on the same sheet as its input cells. Either build the grid on the `Model` sheet next to `B6`/`B7`, or put local driver cells on the `Sensitivity` tab and point the model's `B6`/`B7` at them.
+- Corner cell = the live output (`=Model!B40`). Select the corner plus the axes and body, then Data > What-If Analysis > Data Table.
+- Row input cell = the cell that the values across the TOP row replace; Column input cell = the cell that the values down the LEFT column replace. Swapping them transposes the result silently.
+
+### Why not a native Data Table from code
+Excel only accepts Data Table input cells on the same sheet as the table, openpyxl cannot write a real Data Table, and LibreOffice recalculates an openpyxl-written `=TABLE(...)` to #VALUE!. LibreOffice's `MULTIPLE.OPERATIONS` is not an Excel function and shows #NAME? when the file is saved as .xlsx. The computed grid is therefore the deliverable, and the live Data Table is an optional step in Excel.
 
 ### Choosing axis ranges
 - Center each axis on the base-case value so the base sits in the middle row and middle column, which makes the center-cell check meaningful.
@@ -53,8 +56,8 @@ Code-computed fallback for the same block (recommended when generating via code)
 
 ### openpyxl build notes
 - Write the corner as a real formula string: `ws["B3"] = "=Model!B40"`. Do not paste the current numeric value of the output.
-- For the native Data Table array, openpyxl can store the `=TABLE(...)` text, but a real engine must recalculate to fill the block; treat the array as a placeholder until the recalc step runs.
-- When writing the computed fallback, set the data values with Python (`ws.cell(row=r, column=c, value=float(npv))`) and keep them visually distinct from the live block with a header note such as "computed snapshot".
+- Never write `=TABLE(...)` or `MULTIPLE.OPERATIONS(...)` from openpyxl; both recalculate to errors (see above).
+- When writing the computed grid, set the data values with Python (`ws.cell(row=r, column=c, value=float(npv))`) and keep them visually distinct from the live block with a header note such as "computed snapshot".
 - Apply the color scale with `openpyxl.formatting.rule.ColorScaleRule` over the result block, mapping min to one color and max to another through a midpoint.
 
 ## Formula and formatting conventions
@@ -62,17 +65,17 @@ Code-computed fallback for the same block (recommended when generating via code)
 - Black font for in-tab formulas.
 - Green font for cross-tab links such as `=Model!B40`.
 - No hardcodes where a formula belongs: the corner cell must be `=Model!B40`, never the typed base-case number.
-- One consistent formula per row or column: the entire Data Table block is a single array; the computed fallback uses one Python expression applied across the grid.
+- One consistent formula per row or column: the computed grid uses one Python expression applied across every cell.
 - Number formats: rates as `0.0%`, currency outputs as `#,##0`, ratios as `0.00`. Axis values match the unit of the input cell they replace.
 
 ## Checks
 - Corner cell equals the live output: `=(B3=Model!B40)` returns TRUE.
 - Axes labeled with the input cell names (a text label above or beside each axis naming the driver and its cell address).
 - Center of the grid matches the base case: the grid cell at the base-case row and base-case column equals the model's current output, `=(<center cell>=Model!B40)` TRUE.
-- For the computed fallback, the cell at the base inputs equals the native Data Table cell at the same inputs (within rounding).
+- The Python re-evaluation reproduces the live model: the computed value at the base inputs equals the recalculated `Model!B40` (within rounding). If it does not, the Python mirror of the model is wrong. Fix it before delivering.
 
 ## Recalculate and verify
-Save with openpyxl, then recalc headless (for example `libreoffice --headless --convert-to xlsx`) so `=TABLE(...)` and cross-sheet links populate. Reload and scan every cell for #REF!, #DIV/0!, #VALUE!, #NAME?. Confirm the three checks return TRUE. If any error or FALSE appears, fix the reference or range and loop until clean, then deliver.
+Save with openpyxl, then recalc headless (for example `libreoffice --headless --convert-to xlsx`) so the corner and cross-sheet links populate, and the base-case check can be compared against the computed grid. Reload and scan every cell for #REF!, #DIV/0!, #VALUE!, #NAME?. Confirm the three checks return TRUE. If any error or FALSE appears, fix the reference or range and loop until clean, then deliver.
 
 ## Inputs to gather
 - Path to the source model and the exact output cell address.

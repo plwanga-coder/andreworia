@@ -27,13 +27,19 @@ Provides a systematic, step-by-step model audit process covering: Excel's native
 
    Step: Press Ctrl+H (Find and Replace). Click Options. Set "Look in" to Formulas. Search for specific numbers to check (try "0.2", "0.3", "0.15", "1000", "12"). Any formula containing these numbers outside of the Inputs tab should be investigated.
 
-   Better approach: Use Excel's Go To Special feature (Ctrl+G > Special > Constants > Numbers). This selects all cells containing hardcoded numbers. Review: any such cell on a Calc tab that is not on the Inputs tab should be flagged.
+   Also use Go To Special (Ctrl+G > Special > Constants > Numbers) on each Calc tab. This only finds cells that are entirely a typed number (for example a pasted-over formula). It does NOT find constants inside formulas such as =A1*0.25, so it complements the formula search rather than replacing it.
+
+   To find constants embedded in formulas systematically: add a helper column with =FORMULATEXT(cell) and flag any result that contains a digit outside a cell reference, use the Inquire add-in (Workbook Analysis > Formulas > With numeric constants), or scan the file with a script (for example openpyxl: flag formula strings that contain numeric literals after cell references are stripped). Constants such as 0, 1 and 12 used for units (months per year) may be acceptable if documented; everything else should be investigated.
 
    For each hardcoded number found in a Calc formula: move the assumption to the Inputs tab, give it a label, apply blue fill, and replace the hardcode with a cell reference to the Inputs tab.
 
-7. **Audit for IFERROR consistency.** Review all lookup formulas (VLOOKUP, INDEX-MATCH, XLOOKUP, MATCH) to verify they are wrapped in IFERROR. An unwrapped lookup that returns #N/A can propagate through downstream formulas silently, producing incorrect results.
+7. **Audit error handling on lookups.** Review all lookup formulas (VLOOKUP, INDEX-MATCH, XLOOKUP, MATCH). Two failure modes matter: an unhandled #N/A that breaks downstream totals, and, more dangerously, an error that is silently masked.
 
-   To find unprotected lookups: Ctrl+F > search for "=VLOOKUP", "=INDEX(", "=XLOOKUP" without the "IFERROR(" prefix. For each unprotected lookup: wrap in IFERROR(formula, "Check: [description] not found") or IFERROR(formula, 0) depending on the context. Document each lookup that was wrapped.
+   Flag as Major any IFERROR(formula, 0) or IFERROR(formula, "") on a value that feeds a calculation. It hides broken references, typos in lookup keys and #REF! errors, and turns them into plausible-looking wrong numbers. Also flag blanket IFERROR wrappers around non-lookup arithmetic.
+
+   Preferred handling: use IFNA (or XLOOKUP's if_not_found argument) so only a genuine "not found" is caught and other errors (#REF!, #VALUE!) still surface. Return a visible flag rather than 0, e.g. IFNA(formula, "Check: [key] not found"), and add a Checks-tab count of those flags so they cannot go unnoticed. Use a 0 fallback only where a missing key genuinely means zero, and document why.
+
+   To find lookups: Ctrl+F with "Look in: Formulas" for "VLOOKUP(", "INDEX(", "XLOOKUP(", "MATCH(" (no leading "=", so nested lookups are also found), and separately for "IFERROR(" to review existing wrappers. Document each change.
 
 8. **Check named range integrity.** Go to Formulas > Name Manager. For every named range: verify it refers to the correct cell or range (no #REF! in the "Refers to" column), verify the name is still used in the model (search for the name in formulas using Ctrl+F), and delete any orphaned named ranges (names that no longer have a valid reference or are no longer used).
 
@@ -47,7 +53,7 @@ Provides a systematic, step-by-step model audit process covering: Excel's native
 
     Finding ID | Tab | Cell | Issue Type | Severity | Description | Status (Open/Fixed) | Fixed by | Date fixed.
     
-    Issue types: Hardcoded value, Circular reference, Formula error, IFERROR missing, Sign inconsistency, Named range broken, Sensitivity table error, Formula complexity.
+    Issue types: Hardcoded value, Circular reference, Formula error, Error handling (missing or masking), Sign inconsistency, Named range broken, Sensitivity table error, Formula complexity.
     
     Severity: Critical (will produce wrong results in current state), Major (will produce wrong results in certain conditions), Minor (does not affect results but violates conventions).
     
@@ -84,11 +90,11 @@ Step 1 (30 minutes): Run Error Checking (Formulas > Error Checking). Any #REF! i
 
 Step 2 (20 minutes): Check for circular references (Formulas > Error Checking > Circular References). A circular reference in a DCF or LBO model will produce wrong output silently if iterative calculations are enabled. If found: flag as Critical, diagnose, and fix.
 
-Step 3 (45 minutes): Hardcode hunt across all Calc tabs. Use Go To Special > Constants > Numbers on each of the 10 Calc tabs. Flag every number on a Calc tab that is not on the Inputs tab. Common critical hardcodes in DCF models: tax rate embedded in the NOPAT formula, WACC embedded in the discount factor formula, number of shares hardcoded in the equity bridge.
+Step 3 (45 minutes): Hardcode hunt across all Calc tabs. Use Go To Special > Constants > Numbers on each of the 10 Calc tabs to catch typed-over cells, then run a FORMULATEXT or Inquire scan to catch constants inside formulas. Flag every number on a Calc tab that is not on the Inputs tab. Common critical hardcodes in DCF models: tax rate embedded in the NOPAT formula, WACC embedded in the discount factor formula, number of shares hardcoded in the equity bridge.
 
 Step 4 (20 minutes): Verify sensitivity table input cell references. Open each Data Table, manually change the row and column input cells, and confirm the output changes appropriately.
 
-Step 5 (30 minutes): Review all INDEX, VLOOKUP, and MATCH formulas for IFERROR wrapping. Search: Ctrl+F for "=INDEX(" and "=VLOOKUP(" -- scan results for those lacking IFERROR.
+Step 5 (30 minutes): Review error handling on all INDEX, VLOOKUP, XLOOKUP and MATCH formulas. Search (Look in: Formulas) for "INDEX(", "VLOOKUP(" and "IFERROR(". Flag any IFERROR(...,0) that could be masking a broken link in the equity bridge, and convert genuine not-found cases to IFNA with a visible flag.
 
 **Audit log structure:**
 | ID | Tab | Cell | Type | Severity | Description | Status |
