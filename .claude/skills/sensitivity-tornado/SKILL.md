@@ -92,11 +92,11 @@ A complete tornado analysis specification with:
 | Capex % revenue | 5% | 3% | 7% |
 | Churn rate | 8% | 5% | 12% |
 
-**Tornado data table (sorted by absolute impact):**
+**Tornado data table (sorted by absolute impact, descending; Low/High columns are the lower and higher equity value from the swing, so for WACC the Low equity value comes from the High WACC input):**
 
 | Variable | Low Equity Value | High Equity Value | Downside | Upside | Abs Range |
-| WACC | $95M | $163M | -$30M | +$38M | $68M |
 | Revenue CAGR | $88M | $165M | -$37M | +$40M | $77M |
+| WACC | $95M | $163M | -$30M | +$38M | $68M |
 | Terminal growth rate | $103M | $148M | -$22M | +$23M | $45M |
 | EBITDA margin | $108M | $142M | -$17M | +$17M | $34M |
 | Churn rate | $112M | $137M | -$13M | +$12M | $25M |

@@ -42,7 +42,8 @@ A workbook with six tabs:
 - S&M spend per period B5; new customers acquired B6.
 - ARPU per month B7; gross margin % B8.
 - Monthly churn % B9 (so monthly retention `=1-B9`); discount rate per month B10.
-- Scenario multipliers (Base/Bull/Bear) for churn and ARPU: active churn `=CHOOSE(scn,...)` in B12, active ARPU `=CHOOSE(scn,...)` in B13.
+- Scenario multipliers (Base/Bull/Bear) for churn and ARPU: active churn multiplier `=CHOOSE(scn,...)` in B12, active ARPU multiplier `=CHOOSE(scn,...)` in B13. Effective monthly churn is `B9*B12`.
+- Consistency tolerance `tol` in B14 (for example 0.1%).
 
 ### Unit Economics
 - CAC B3 `=Assumptions!B5/Assumptions!B6`.
@@ -50,7 +51,7 @@ A workbook with six tabs:
 - Gross profit per customer-month B5 `=B4*Assumptions!B8`.
 - Monthly retention B6 `=1-Assumptions!B9*Assumptions!B12`.
 - CAC payback (months) B7 `=CAC/gross profit per customer-month` `=B3/B5`. If you prefer cohort-aware payback, compute cumulative gross profit per cohort month until it crosses CAC and report that month index.
-- Average customer lifetime (months) B8 `=1/(Assumptions!B9*Assumptions!B12)`.
+- Average customer lifetime (months) B8 `=IF(Assumptions!B9*Assumptions!B12>0,1/(Assumptions!B9*Assumptions!B12),"n/a: zero churn")`.
 
 ### Cohorts
 - Row 3 month headers 0,1,2,...,N across columns.
@@ -61,13 +62,15 @@ A workbook with six tabs:
 - Contribution per cohort-month: `=revenue * Assumptions!$B$8`.
 
 ### LTV-CAC
-- LTV closed-form B3 `='Unit Economics'!B4*Assumptions!B8/('Unit Economics'!B6 lifetime churn)` i.e. `=ARPU*GM% / churn`; in cells `='Unit Economics'!B4*Assumptions!B8/(Assumptions!B9*Assumptions!B12)`.
+- LTV simple (undiscounted, infinite horizon) B3: `=gross profit per customer-month / effective monthly churn`, in cells `='Unit Economics'!B5/(Assumptions!B9*Assumptions!B12)`. This is the familiar headline figure; guard churn = 0 with IF.
 - LTV discounted-cohort B4: sum over months of contribution per customer discounted, `=SUMPRODUCT(contribution_per_customer_row, 1/(1+Assumptions!B10)^month_index)` using the month-0 cohort row divided by starting customers so it is per-customer.
 - LTV/CAC B5 `=B4/'Unit Economics'!B3` (use the discounted LTV as primary).
 - Payback echo B6 `='Unit Economics'!B7`.
+- LTV discounted closed-form B7 (the same discounted, finite-horizon sum in one formula, used only to check the cohort grid): with q = retention/(1+discount) and M = number of month columns, `='Unit Economics'!B5*(1-q^M)/(1-q)`, in cells `='Unit Economics'!B5*(1-('Unit Economics'!B6/(1+Assumptions!B10))^COUNT(Cohorts!<month header row>))/(1-'Unit Economics'!B6/(1+Assumptions!B10))`.
 
 ### Checks
-- Consistency: `=IF(ABS(LTV_closedform-LTV_discounted)/LTV_discounted<=Assumptions!tol,"PASS","FAIL")`.
+- Consistency: the cohort grid's discounted LTV (B4) equals the discounted closed-form (B7): `=IF(ABS(B4-B7)/B7<=tol,"PASS","FAIL")`. Do NOT compare against the simple LTV (B3): it is undiscounted and runs forever, so it is always higher by design (in the example, 1,000 vs about 678) and the check would always fail.
+- Ordering sanity: `=IF('LTV-CAC'!B4<='LTV-CAC'!B3,"PASS","FAIL")` (discounted, finite-horizon LTV can never exceed the simple LTV).
 - Monotonic retention within each cohort: `=IF(SUMPRODUCT(--(this_month_cells>prior_month_cells))=0,"PASS","FAIL")` so no month exceeds the prior.
 - Payback positive and within a stated cap (blue input).
 - LTV/CAC computed from the same ARPU, margin, and churn used in the cohort grid.
@@ -80,7 +83,7 @@ A workbook with six tabs:
 - Name `scn`, `tol`, CAC, and the retention cell for readable Checks and LTV formulas.
 
 ## Checks
-- LTV/CAC computed consistently (closed-form and discounted within tolerance).
+- LTV/CAC computed consistently (cohort-grid discounted LTV equals the discounted closed-form within tolerance; simple LTV is at least the discounted LTV).
 - CAC payback reported in months and positive.
 - Retention monotonically non-increasing within each cohort (no month rises above the prior).
 - Margins and retention between 0 and 1; CAC and LTV non-negative.
@@ -96,4 +99,4 @@ After writing, recalculate headless with LibreOffice so openpyxl formula text be
 - Scenario multipliers for churn and ARPU (Base/Bull/Bear) and the tolerance band.
 
 ## Example
-Hypothetical: S&M 200,000, 400 new customers, so CAC 500. ARPU 50 per month, 80% gross margin gives 40 gross profit per customer-month, payback 12.5 months. Churn 4% monthly implies 25-month average lifetime; closed-form LTV about 1,000 and discounted cohort LTV slightly lower; LTV/CAC near 2.0x. The cohort grid decays each cohort 100%, 96%, 92.2%, ... across months, and contribution sums to the discounted LTV.
+Hypothetical: S&M 200,000, 400 new customers, so CAC 500. ARPU 50 per month, 80% gross margin gives 40 gross profit per customer-month, payback 12.5 months. Churn 4% monthly implies 25-month average lifetime; simple LTV 1,000 (LTV/CAC 2.0x on that basis). With a 1% monthly discount rate over a 36-month grid, the discounted cohort LTV is about 678 (LTV/CAC about 1.36x), and the discounted closed-form matches it exactly, so the consistency check passes. The cohort grid decays each cohort 100%, 96%, 92.2%, ... across months, and contribution sums to the discounted LTV.

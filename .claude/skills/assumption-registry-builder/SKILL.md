@@ -108,12 +108,12 @@ A complete assumption register specification with:
 =RANK(J5,$J$5:$J$20,0) -- J holds the absolute swing (numeric), so this ranks assumptions by absolute impact on Year 5 ARR, with 1 = highest impact.
 
 **Sensitivity category:**
-=IF(I5<=2,"High",IF(I5<=5,"Medium","Low"))
-Result: A001, A002 = High; A003, A004, A005 = Medium.
+=IF(I5<=3,"High",IF(I5<=7,"Medium","Low")) (same thresholds as the method; for registers much shorter or longer than ~10 rows, scale them, e.g. top 30% High)
+Result: A001, A002, A003 = High; A004, A005 = Medium.
 
 **Summary block:**
 Total assumptions: 5
-High sensitivity: 2 (ARR growth rate, churn rate)
+High sensitivity: 3 (ARR growth rate, churn rate, average contract value)
 Active monitoring: 4
 Assumptions with no source: =COUNTBLANK($F$5:$F$20) = 0 (all sourced)
 

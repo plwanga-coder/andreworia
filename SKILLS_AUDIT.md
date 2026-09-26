@@ -41,7 +41,7 @@ Note: the README is mostly marketing for Oria. The skills themselves contain no 
 
 ## Technical findings
 
-**Status (2026-09-26):** findings 1–5 (High and Medium) are **patched in the installed copies** under `.claude/skills/` and `~/.claude/skills/`. `skills/` is left identical to upstream. Findings 6–11 (Low) are not patched.
+**Status (2026-09-26):** all findings (1–11) are **patched in the installed copies** under `.claude/skills/` and `~/.claude/skills/`. `skills/` is left identical to upstream.
 
 ### High
 
@@ -59,12 +59,26 @@ Note: the README is mostly marketing for Oria. The skills themselves contain no 
 
 ### Low
 
-6. **assumption-registry-builder:** the High/Medium/Low thresholds are `<=3 / <=7` in the method but `<=2 / <=5` in the example.
-7. **sensitivity-tornado:** the example table says it is "sorted by absolute impact" but lists WACC ($68M) above Revenue CAGR ($77M).
-8. **unit-economics:** the Checks tab requires closed-form LTV and discounted finite-horizon cohort LTV to agree within a tolerance. They differ by design (discounting and truncation), so the tolerance needs to be generous or the check always fails. There is also a confusing inline note, "`'Unit Economics'!B6` lifetime churn"; B6 is retention. The final formula is correct.
-9. **formula-audit-checker:** `Ctrl+[` selects precedents; it doesn't draw Trace Precedents arrows.
-10. **pivot-table-builder:** says "build the pivot table" but gives no method. openpyxl cannot create pivot tables, so in the Claude app this ends up as a pandas `pivot_table` summary written as a static range.
-11. **data-cleaning-for-excel / pivot-table-builder:** very short compared with the rest (no method detail or worked example).
+6. **[PATCHED] assumption-registry-builder:** the High/Medium/Low thresholds are `<=3 / <=7` in the method but `<=2 / <=5` in the example.
+7. **[PATCHED] sensitivity-tornado:** the example table says it is "sorted by absolute impact" but lists WACC ($68M) above Revenue CAGR ($77M).
+8. **[PATCHED] unit-economics:** the Checks tab requires closed-form LTV and discounted finite-horizon cohort LTV to agree within a tolerance. They differ by design (discounting and truncation), so the tolerance needs to be generous or the check always fails. There is also a confusing inline note, "`'Unit Economics'!B6` lifetime churn"; B6 is retention. The final formula is correct.
+9. **[PATCHED] formula-audit-checker:** `Ctrl+[` selects precedents; it doesn't draw Trace Precedents arrows.
+10. **[PATCHED] pivot-table-builder:** says "build the pivot table" but gives no method. openpyxl cannot create pivot tables, so in the Claude app this ends up as a pandas `pivot_table` summary written as a static range.
+11. **[PATCHED] data-cleaning-for-excel / pivot-table-builder:** very short compared with the rest (no method detail or worked example).
+
+Low-severity patches:
+- **6.** The example now uses the method's thresholds (`<=3` / `<=7`), with a note to scale them for short or long registers. Its results and summary are updated to match: 3 High, 2 Medium.
+- **7.** The example rows are re-sorted (Revenue CAGR $77M above WACC $68M). A note explains that Low/High means the lower and higher output.
+- **8.** Unit-economics has a new consistency check. It compares the cohort-grid discounted LTV with a discounted closed-form geometric sum over the same horizon. Verified in LibreOffice: 678.10 vs 678.10, PASS. The old check compared about 1,000 with 678, so it would have always failed. There is also a new sanity check that the simple LTV is at least the discounted LTV. The B6 wording is fixed, zero churn is guarded, and the example is corrected (discounted LTV about 678, LTV/CAC about 1.36x).
+- **9.** Trace Precedents now uses the ribbon path (Alt, M, P). Ctrl+[ is described correctly: it selects precedents without drawing arrows.
+- **10–11.** pivot-table-builder gains a "How to build" section: a native pivot in Excel, or a live SUMIFS grid (verified in LibreOffice) or a pandas static summary when generating with openpyxl. It also gains a grand-total check and a worked example. data-cleaning-for-excel is expanded:
+  - the raw data is kept untouched, next to a clean tab and a change log
+  - each column is profiled first
+  - number edge cases are handled (parentheses, trailing minus, decimal commas), and ID columns with leading zeros stay as text
+  - day/month order is detected, and Claude asks when it is ambiguous
+  - non-breaking spaces are removed
+  - the duplicate-key rule is stated explicitly
+  - a worked example is added
 
 Worked examples checked and arithmetically correct: revenue-build (1,000 + 200 − 30 = 1,170), unit-economics (CAC 500, payback 12.5 mo, LTV 1,000, LTV/CAC 2.0x, retention 100% / 96% / 92.2%), scenario-manager (Bull delta 380).
 
@@ -77,4 +91,4 @@ Worked examples checked and arithmetically correct: revenue-build (1,000 + 200 �
 
 - **Project level:** copied to `.claude/skills/<name>/SKILL.md` in this repo, unmodified. They load automatically in any Claude Code session opened on this repo.
 - **User level (this session):** copied to `~/.claude/skills/`. This cloud container is temporary, so copy them to `~/.claude/skills/` on your own machine too, or upload each folder in the Claude app (Settings → Capabilities → Skills).
-- The installed copies started as byte-for-byte copies of `skills/`. They have since been patched for findings 1–5. Run `diff -r skills .claude/skills` to see exactly what changed.
+- The installed copies started as byte-for-byte copies of `skills/`. They have since been patched for findings 1–11. Run `diff -r skills .claude/skills` to see exactly what changed.
