@@ -17,7 +17,7 @@ Audit date: 2026-09-26. Scope: all 12 `skills/*/SKILL.md` files as originally pu
 | Hidden or invisible Unicode (zero-width, bidi, tag chars) | None. All skill files are pure ASCII |
 | Shell commands the skills tell Claude to run | Only `libreoffice --headless --convert-to xlsx`, to recalculate locally. Low risk |
 | Frontmatter validity (`name` matches folder, `description` present) | 12/12 pass |
-| Assets (`.github/assets`) | PNG/GIF images that were used only by the README's Oria marketing sections, and are no longer referenced |
+| Assets (`.github/assets`) | PNG/GIF images that were used only by the README's Oria marketing sections; since deleted |
 | Licence | MIT |
 
 Note: the original README was mostly marketing for Oria. That content has since been removed, leaving a single credit line. The skills themselves contain no promotional or tracking content.
