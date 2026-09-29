@@ -37,6 +37,12 @@ The skills in this repo have been audited and patched. See [SKILLS_AUDIT.md](SKI
 | [`formula-audit-checker`](.claude/skills/formula-audit-checker) | Runs the pre-submission audit — trace precedents and dependents, hardcodes buried in formulas, circular references, error handling that masks problems — and returns a prioritised fix list. |
 | [`output-summary-tab`](.claude/skills/output-summary-tab) | Designs the one-page executive summary tab: KPI tiles, the so-what narrative, a compact sensitivity table and the key assumptions, sized for one landscape page. |
 
+### Learn it yourself
+
+| Skill | What it does |
+|:--|:--|
+| [`excel-modelling-skills-map`](.claude/skills/excel-modelling-skills-map) | Coaches a person to acquire the 12 competencies above: a placement diagnostic, a six-stage learning map with drills and pass criteria, an appraisal of each skill (difficulty, value, hours, limitations), role-based priorities and certification routes. The appraisal and map live in its `references/` folder. |
+
 ## Install
 
 Each skill is a folder containing a `SKILL.md` with YAML frontmatter, following the [Agent Skills](https://code.claude.com/docs/en/skills) format.
